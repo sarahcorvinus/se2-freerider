@@ -1,22 +1,25 @@
 package de.freerider.application;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.event.EventListener;
-
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * Application class with main() method. Starts the Spring Container.
  * 
- * To run this class:
+ * Run this class with:
  * <pre>
- *  - mvn package
- *  - java -jar target/freerider-application-0.0.1-SNAPSHOT.jar
+ *  - mvn compile
+ *  - mvn package               # package and run final artefact
+ *  - java -jar target/se2-freerider-0.0.1-SNAPSHOT.jar
+ * 
+ *  - mvn spring-boot:run       # Spring's own runner
+ * 
+ *  - .run.sh                   # run compiled classes only (source .env.sh)
  * </pre>
  * 
  * @author sgra64
