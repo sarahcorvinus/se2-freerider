@@ -2,13 +2,20 @@
 # Spring Boot's central application configuration file.
 #
 
-# Control output of log lines for levels:
-# - TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+
+# application configuration properties
+#
+application:
+  print_bean_info: false      # print information about registered beans
+
+
+# configuration for log output for levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
 # see: https://howtodoinjava.com/spring-boot2/logging/configure-logging-application-yml
 #
 logging:
   pattern:
-    console: "%n%msg%n"       # use short format
+    console: "%msg%n"         # use short format
   level:
     root: ERROR               # disable Spring Boot logs
     '[de.freerider]': INFO    # allow application-level INFO logs
+
