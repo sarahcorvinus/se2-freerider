@@ -22,6 +22,9 @@ Spring adopted and introduced new concepts:
 - [5. *Spring-Data*](#5-spring-data) -
     abstraction layer for accessing data from external sources.
 
+- [6. *Spring @Components*](#6-spring-components) -
+    supporting component-based architecture.
+
 
 &nbsp;
 
@@ -312,6 +315,139 @@ which exists in forms, [link]():
 - [PagingAndSortingRepository](https://www.baeldung.com/spring-data-repositories#pagingandsortingrepository) -
     for accessing larger @Entity data sets with pagination and sorting,
     [javadoc](https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/PagingAndSortingRepository.html).
+
+
+&nbsp;
+
+### 6. *Spring @Components*
+*Spring @Components* are singleton-scoped Spring Beans to structure large complex
+software in functional components (blocks with clearly defined responsibilities
+and functions defined by interfaces).
+
+Components are Spring-managed, hence no own instantiation is permitted.
+Spring configures, creates and manages components. References are distributed
+through constructor-, setter- or @Autowired-dependency injection.
+
+The following *@Component* sub-types exist in Spring:
+
+- *@Component* - base component annotation,
+    [javadoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/package-summary.html).
+
+- *@Controller* - component sub-type to enable HTTP-access with sub-types:
+    - *@RestController* with @GetMapping, @PutMapping, Post..., Delete...,
+    - *MVC Controller* (Model-View-Controller) for server-side HTML generation
+    with the Thymeleaf engine (using @Controller annotation).
+
+- *@Service* - annotation to declare a component as a (micro-) service
+    that continuously accepts and processes REST-calls.
+    Technically, there is no differrence to @RestController.
+
+- *@Repository<T, ID>* - component to encapsulate access to an @Entity class
+    T with type of identifier ID.
+
+Components are typically implements using a public interface and a non-public
+implementation class decorated with @Component (or sub-types).
+
+Example of 
+[*Building REST services with Spring*](https://spring.io/guides/tutorials/rest):
+
+```java
+@Entity
+class Employee {
+
+  private @Id @GeneratedValue Long id;      // database-generated id
+  private String name;
+
+  Employee() { }
+
+  Employee(String name) {
+    this.name = name;
+  }
+
+  public Long getId() {
+    return this.id;
+  }
+
+  public String getName() {
+    return this.name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+}
+
+
+/**
+ * Spring @RestController to connect /employees endpoint to code.
+ */
+@RestController
+class EmployeeController {
+
+  // dependency to repository
+  private final EmployeeRepository repository;
+
+  /**
+   * Constructor-based dependency injection.
+   */
+  EmployeeController(EmployeeRepository repository) {
+    this.repository = repository;
+  }
+
+  /**
+   * GET all employees from /employees endpoint.
+   */
+  @GetMapping("/employees")
+  List<Employee> all() {
+    return repository.findAll();
+  }
+
+  /**
+   * POST new employee to /employees endpoint with data in @RequestBody.
+   */
+  @PostMapping("/employees")    // 
+  Employee newEmployee(@RequestBody Employee newEmployee) {
+    return repository.save(newEmployee);
+  }
+  
+  /**
+   * GET employee with specified {id} from /employees endpoint.
+   */
+  @GetMapping("/employees/{id}")
+  Employee one(@PathVariable Long id) {
+    return repository.findById(id)
+      .orElseThrow(() -> new EmployeeNotFoundException(id));
+  }
+
+  /**
+   * Update employee of specified {id} with data in @RequestBody.
+   * id values in {id} and the id in the @RequestBody must match.
+   */
+  @PutMapping("/employees/{id}")
+  Employee updateEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
+    return repository.findById(id)
+      .map(employee -> {
+        employee.setName(newEmployee.getName());
+        return repository.save(employee);
+      })
+      .orElseGet(() -> {
+        newEmployee.setId(id);
+        return repository.save(newEmployee);
+      });
+  }
+
+  /**
+   * DELETE employee with specified {id} in the database.
+   */
+  @DeleteMapping("/employees/{id}")
+  void deleteEmployee(@PathVariable Long id) {
+    repository.deleteById(id);
+  }
+}
+```
+
+A more comprehensive example of building a Spring Web-/JPA-application:
+[petclinic](https://github.com/spring-projects/spring-petclinic).
 
 
 &nbsp;
