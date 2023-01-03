@@ -38,23 +38,42 @@ within Spring that simplifies the development of Spring applications:
 - annotation-based configuration avoiding the myriad of xml configuration
     files used in Java/Jakarta EE or classic Spring applications.
 
-Meet the global Spring development [team](https://spring.io/team) and
-check out Spring [events](https://spring.io/events).
+Meet the global Spring development [team](https://spring.io/team),
+check out upcoming Spring [events](https://spring.io/events) or
+Spring Boot's [Youtube channel](https://www.youtube.com/playlist?list=PLgGXSWYM2FpOa_FTla-x5Wd10dpmgrRC4).
 
-Spring [Quickstart](https://spring.io/quickstart).
+Try Spring [Quickstart](https://spring.io/quickstart).
 
-[RedHat](https://www.redhat.com/en) (now IBM) has released a similar,
-competitive framework
-[Quarkus](https://quarkus.io), [wiki](https://en.wikipedia.org/wiki/Quarkus)
-in 2019 that optimizes Java applications for containerized deployments with
-smaller storage / memory footprints and faster startup times using native
-images produced by the Java
+
+&nbsp;
+
+### Similar Frameworks, Competition
+
+(1) [Java EE / Jakarta EE](https://en.wikipedia.org/wiki/Jakarta_EE)
+has traditionally been the main competitor of Spring and Spring Boot
+(see discussion below).
+
+
+(2) [Quarkus](https://quarkus.io) was released by
+[RedHat](https://www.redhat.com/en) (now IBM) in 2019
+as a similar, competitive framework.
+
+- Quarkus, [wiki](https://en.wikipedia.org/wiki/Quarkus)
+optimizes Java applications for containerized deployments with smaller
+storage / memory footprints and faster startup times using native images
+produced by the Java
 [Graal VM](https://en.wikipedia.org/wiki/GraalVM) that compiles code into
 directly into executable rather than portable code used by the JavaVM.
 
-Spring has responded with the release of
+- Article by *Eugen Paraschiv: "Spring Boot vs Quarkus"*,
+[link at Baeldung](https://www.baeldung.com/spring-boot-vs-quarkus).
+
+Spring has responded with the
 [Spring 6.0](https://spring.io/blog/2022/11/16/spring-framework-6-0-goes-ga)
 release (Nov 2022).
+
+- Article by *Daniel Vega: "What's new in Spring Boot 3.0"*,
+[GitHub](https://github.com/danvega/whats-new-spring-boot-3).
 
 
 &nbsp;
@@ -376,8 +395,26 @@ class Employee {
     this.name = name;
   }
 }
+```
 
+@Employee objects are accessed via the `EmployeeRepository` interface, which
+extends `JpaRepository<T, ID>` with `T: Employee` and `ID: Long`.
 
+EmployeeRepository uses the inherited methods from `JpaRepository<Employee, Long>` -
+[javadoc](https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html) -
+and does not add other methods. 
+
+```java
+interface EmployeeRepository extends JpaRepository<Employee, Long> {
+
+}
+```
+
+`EmployeeController` is the component that links HTTP-operations for the
+`/employees` - endpoint to code that accesses `Employee` data in the
+repository and the database underneath.
+
+```java
 /**
  * Spring @RestController to connect /employees endpoint to code.
  */
