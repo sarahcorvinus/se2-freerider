@@ -8,4 +8,16 @@ if [ -z "${CLASSPATH}" ]; then
     source .env.sh
 fi
 
+for arg in "$@"
+do
+    case "$arg" in
+    "--force-compile")
+        # compile project
+        javac -cp ${CLASSPATH} $(find src/main/java -name '*.java') -d target/classes
+        cp -R src/main/resources/* target/classes
+    ;;
+    esac
+done
+
+# run main
 java -cp ${CLASSPATH} de.freerider.application.FreeriderApplication
