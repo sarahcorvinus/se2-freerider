@@ -9,6 +9,15 @@ application:
   print_bean_info: false      # print information about registered beans
 
 
+# connection to database (assumed running on localhost, listening on port 3306)
+#
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/FREERIDER_DB
+    username: freerider
+    password: free.ride
+
+
 # configuration for log output for levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
 # see: https://howtodoinjava.com/spring-boot2/logging/configure-logging-application-yml
 #
@@ -18,4 +27,3 @@ logging:
   level:
     root: ERROR               # disable Spring Boot logs
     '[de.freerider]': INFO    # allow application-level INFO logs
-

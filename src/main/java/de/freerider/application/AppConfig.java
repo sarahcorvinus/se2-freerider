@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 
 /**
@@ -19,6 +21,8 @@ import org.springframework.context.annotation.Configuration;
  * 
  * @author sgra64
  */
+@EnableJpaRepositories("de.freerider.data_jpa")
+@EntityScan("de.freerider.datamodel")
 @ComponentScan(basePackages = {"de.freerider"})
 @Configuration
 public class AppConfig {
