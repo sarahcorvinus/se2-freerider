@@ -15,9 +15,11 @@ import org.slf4j.LoggerFactory;
 import de.freerider.datamodel.Customer;
 import de.freerider.datamodel.DataFactory;
 import de.freerider.datamodel.Reservation;
-import de.freerider.datamodel.Vehicle;
 
 
+/**
+ * Non-public implementation class or DataAccess interface.
+ */
 @Component
 class DataAccessImpl implements DataAccess {
 
@@ -44,26 +46,76 @@ class DataAccessImpl implements DataAccess {
     private JdbcTemplate jdbcTemplate;
 
 
+    /**
+     * Run query that returns the number of Customers in the database:
+     * - query: SELECT COUNT(ID) FROM CUSTOMER;
+     * - returns number extracted from ResultSet.
+     * 
+     * @return number of Customer records in the database.
+     */
+    @Override
+    public long countCustomers() {
+        //
+        List<Object> result = jdbcTemplate.query(
+            /*
+             * Run SQL statement:
+             */
+            "SELECT COUNT(ID) FROM CUSTOMER",
+
+            /*
+             * Return ResultSet (rs) and extract COUNT value.
+             */
+            (rs, rowNum) -> {
+                long count = rs.getInt(1);  // index[1]
+                return count;
+            }
+        );
+        //
+        return result.size() > 0? (long)(result.get(0)) : 0;
+    }
+
+
+    /**
+     * Run query that returns all Customers in the database.
+     * - query: SELECT * FROM CUSTOMER;
+     * - returns Customer objects created from ResultSet rows.
+     * 
+     * @return all Customers in the database.
+     */
     @Override
     public Iterable<Customer> findAllCustomers() {
         //
         var result = jdbcTemplate.queryForStream(
-            //
-            "SELECT * FROM CUSTOMER",
             /*
-             * map SQL Result Set (RS) with values for each row to object of type T
+             * Run SQL statement:
+             */
+            "SELECT * FROM CUSTOMER",
+
+            /*
+             * Return ResultSet (rs) and map each row to Optional<Customer>
+             * depending on whether the object could be created from values
+             * returned from the database or not (empty Optional is returned).
              */
             (rs, rowNum) -> {
+                /*
+                 * Extract values from ResultSet for each row.
+                 */
                 long id = rs.getInt("ID");
                 String name = rs.getString("NAME");
                 String contact = rs.getString("CONTACT");
                 String status = rs.getString("STATUS");
-                //
+                /*
+                 * Attempt to create Customer object through dataFactory,
+                 * which returns Optional<Customer>.
+                 */
                 return dataFactory.createCustomer(id, name, contact, status);
             }
         )
-        // queryForStream() returns stream of Optional<Customer>, which
-        // must be filtered for empty ones and mapped to objects.
+        /*
+         * Remove empty results from stream of Optional<Customer>,
+         * map remaining from Optional<Customer> to Customer and
+         * collect result.
+         */
         .filter(opt -> opt.isPresent())
         .map(opt -> opt.get())
         .collect(Collectors.toList());
@@ -72,74 +124,93 @@ class DataAccessImpl implements DataAccess {
     }
 
 
+    /**
+     * Run query that returns one Customers with a given id.
+     * - query: SELECT * FROM CUSTOMER WHERE ID = ?id;
+     * - returns Customer object created from ResultSet row.
+     * 
+     * @param id Customer id (WHERE ID = id)
+     * @return Optional with Customer or empty if not found.
+     */
     @Override
     public Optional<Customer> findCustomerById(long id) {
         //
         List<Optional<Customer>> result = jdbcTemplate.query(
+            /*
+             * Prepare statement (ps) with "?"-augmented SQL query.
+             */
             "SELECT * FROM CUSTOMER WHERE ID = ?",
-            ps -> {    // ps: prepare statement to repace '?' in SQL String
+            ps -> {
+                /*
+                 * Insert id value of first occurence of "?" in SQL.
+                 */
                 ps.setInt(1, (int)id);
             },
-            // old style:
-            // new RowMapper<Optional<Customer>>() {
-            //     /**
-            //      * Function to map SQL Result Set (RS) with values for each row to
-            //      * object of type T.
-            //      * 
-            //      * @param rs result set.
-            //      * @param rowNum row number.
-            //      * @return object of type T.
-            //      * @throws SQLException
-            //      */
-            //     public Optional<Customer> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            //         String name = rs.getString("NAME");
-            //         String contact = rs.getString("CONTACT");
-            //         String status = rs.getString("STATUS");
-            //         return dataFactory.createCustomer(id, name, contact, status);
-            //     }
-            // }
 
-            /*
-             * replaced with functional style: map SQL Result Set (RS) with
-             * values for each row to object of type T
-             */
-            (rs, rowNum) -> {   // rs: result set, rowNum: row number
+            (rs, rowNum) -> {
+                /*
+                 * Extract values from ResultSet.
+                 */
                 String name = rs.getString("NAME");
                 String contact = rs.getString("CONTACT");
                 String status = rs.getString("STATUS");
-                //
+                /*
+                 * Create Optional<Customer> from values.
+                 */
                 return dataFactory.createCustomer(id, name, contact, status);
             }
         );
+        /*
+         * Probe List<Optional<Customer>> and return Optional<Customer> or
+         * empty Optional for empty list.
+         */
         return result.size() > 0? result.get(0) : Optional.empty();
     }
 
 
+    /**
+     * Run query that returns all Customers with matching id in ids.
+     * - query: SELECT * FROM CUSTOMER WHERE ID IN (10, 20, 30000, 40);
+     * - returns Customer objects created from ResultSet rows.
+     * 
+     * @param ids Customer ids (WHERE IN (?ids))
+     * @return Customers with matching ids.
+     */
     @Override
-    public Iterable<Customer> findAllCustomerById(Iterable<Long> ids) {
-        //
-        // map ids (23, 48, 96) to idsStr: "23, 48, 96"
+    public Iterable<Customer> findAllCustomersById(Iterable<Long> ids) {
+
+        /*
+         * Map ids (23, 48, 96) to idsStr: "23, 48, 96"
+         */
         String idsStr = StreamSupport.stream(ids.spliterator(), false)
             .map(id -> String.valueOf(id))
             .collect(Collectors.joining(", "));
         //
         var result = jdbcTemplate.queryForStream(
-            //
-            String.format("SELECT * FROM CUSTOMER WHERE ID IN (%s)", idsStr),
             /*
-             * map SQL Result Set (RS) with values for each row to object of type T
+             * Prepare statement (ps) with "?"-augmented SQL query.
+             */
+            String.format("SELECT * FROM CUSTOMER WHERE ID IN (%s)", idsStr),
+
+            /*
+             * Extract values from ResultSet for each row.
              */
             (rs, rowNum) -> {
                 long id = rs.getInt("ID");
                 String name = rs.getString("NAME");
                 String contact = rs.getString("CONTACT");
                 String status = rs.getString("STATUS");
-                //
+                /*
+                 * Create Optional<Customer> from values.
+                 */
                 return dataFactory.createCustomer(id, name, contact, status);
             }
         )
-        // queryForStream() returns stream of Optional<Customer>, which
-        // must be filtered for empty ones and mapped to objects.
+        /*
+         * Remove empty results from stream of Optional<Customer>,
+         * map remaining from Optional<Customer> to Customer and
+         * collect result.
+         */
         .filter(opt -> opt.isPresent())
         .map(opt -> opt.get())
         .collect(Collectors.toList());
@@ -148,51 +219,39 @@ class DataAccessImpl implements DataAccess {
     }
 
 
-    @Override
-    public Optional<Vehicle> findVehicleById(long id) {
-        // TODO Auto-generated method stub
-        return Optional.empty();
-    }
-
-
-    @Override
-    public Optional<Reservation> findReservationById(long id) {
-        // TODO Auto-generated method stub
-        return Optional.empty();
-    }
-
-
-    private final String SQL_findReservationsByCustomerId =
-        "SELECT RESERVATION.* FROM CUSTOMER " +
-        "JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID " +
-        "WHERE CUSTOMER.ID = ?";
-
-    @Override
-    public Iterable<Long> findReservationIdsByCustomerId(long customer_id) {
-        //
-        Iterable<Long> result = jdbcTemplate.query(
-            SQL_findReservationsByCustomerId,
-            ps -> {    // ps: prepare statement to repace '?' in SQL String
-                ps.setInt(1, (int)customer_id);
-            },
-            (rs, rowNum) -> {   // rs: result set
-                long rid = rs.getInt("ID");   // RESERVATION.ID
-                return rid;
-            }
-        );
-        return result;
-    }
-
-
+    /**
+     * Run query that returns all reservations held by a customer.
+     * This is a JOIN-query between Reservation and Customer:
+     * - query:
+     *     SELECT RESERVATION.* FROM CUSTOMER
+           JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID
+           WHERE CUSTOMER.ID = ?"
+     * 
+     * @param customer_id id of owning Customer.
+     * @return Reservations with matching customer_id.
+     */
     @Override
     public Iterable<Reservation> findReservationsByCustomerId(long customer_id) {
         //
         return jdbcTemplate.queryForStream(
-            SQL_findReservationsByCustomerId,
-            ps -> {    // ps: prepare statement to repace '?' in SQL String
+            /*
+             * Prepare statement (ps) with "?"-augmented SQL query.
+             */
+            "SELECT RESERVATION.* FROM CUSTOMER " +
+            "JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID " +
+            "WHERE CUSTOMER.ID = ?",
+
+            ps -> {
+                /*
+                 * Insert customer_id value of first occurence of "?" in SQL.
+                 */
                 ps.setInt(1, (int)customer_id);
             },
-            (rs, rowNum) -> {   // rs: result set mapped to Reservation object
+
+            (rs, rowNum) -> {
+                /*
+                 * Extract values from ResultSet.
+                 */
                 long rid = rs.getInt("ID");   // RESERVATION.ID
                 long vehicle_id = rs.getInt("VEHICLE_ID");
                 String begin = rs.getString("BEGIN");
@@ -200,29 +259,41 @@ class DataAccessImpl implements DataAccess {
                 String pickup = rs.getString("PICKUP");
                 String dropoff = rs.getString("DROPOFF");
                 String status = rs.getString("STATUS");
-                //
-                // return Optional<Reservation> when no Reservation object
-                // could be created from result set
+
+                /*
+                 * Create Optional<Reservation> from values.
+                 */
                 var opt = dataFactory.createReservation(
                     rid, customer_id, vehicle_id, begin, end, pickup, dropoff, status
                 );
+
                 if(opt.isEmpty()) {
-                    // log warning when no valid Reservation object could be created
+                    // log warning if no valid Reservation object could be created
                     // from database result set
                     logger.warn(String.format("dropping reservation id: %d"));
                 }
                 return opt;
             })
-            // queryForStream() returns stream of Optional<Reservation>, which
-            // must be filtered for empty ones and mapped to objects.
+            /*
+            * Remove empty results from stream of Optional<Customer>,
+            * map remaining from Optional<Customer> to Customer and
+            * collect result.
+            */
             .filter(opt -> opt.isPresent())
             .map(opt -> opt.get())
             .collect(Collectors.toList());
     }
 
 
+    /**
+     * Generic method to return number of elements in Iterable<T>.
+     * 
+     * @param <T> Generic type of objects contained in Iterable.
+     * @param iter Iterable with objects of type T.
+     * @return number of elements.
+     */
     @Override
-    public <T> int count(Iterable<T> iter) {
+    public <T> long count(Iterable<T> iter) {
         return iter instanceof Collection? ((Collection<?>) iter).size() : -1;
     }
 }

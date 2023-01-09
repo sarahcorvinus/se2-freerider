@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import de.freerider.datamodel.Reservation;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +34,12 @@ class JDBC_QueryRunner {
     @Autowired
     private DataAccess dao;
 
+    /**
+     * Vehicle DAO.
+     */
+    @Autowired
+    private DataAccessVehicles vehicle_dao;
+
 
     /**
      * Method is called by Spring Container after container is ready.
@@ -39,29 +48,48 @@ class JDBC_QueryRunner {
     public void runQueries() {
         //
         logger.info("--> JDBC QueryRunner");
+        long count = 0L;
+        long id = 0L;
 
-        int customer_id = 2;
-        // for(var rid : dao.findReservationIdsByCustomerId(customer_id)) {
-        //     System.out.println("reservation: ---" + rid);
-        // }
-        // for(var r : dao.findReservationsByCustomerId(customer_id)) {
-        //     System.out.println("reservation: ---" + r.getStatus());
-        // }
+        count = dao.countCustomers();
+        logger.info(String.format("dao.countCustomers() -> %d", count));
 
-        customer_id = 64;
-        var customer = dao.findCustomerById(customer_id);
-        if(customer.isPresent()) {
-            System.out.println(String.format("Customer %d found.", customer_id));
-        } else {
-            System.out.println(String.format("Customer %d NOT FOUND.", customer_id));
-        }
+        count = dao.count(dao.findAllCustomers());
+        logger.info(String.format("dao.findAllCustomers() -> %d Customers found", count));
 
-        var customers = dao.findAllCustomers();
-        System.out.println(String.format("%d Customer found.", dao.count(customers)));
+        id = 24;
+        String result = dao.findCustomerById(id)
+            .map(c -> String.format("dao.findCustomerById(%d) -> found: %s", c.getId(), c.getName()))
+            .orElse(String.format("dao.findCustomerById() -> NOT FOUND"));
+        //
+        logger.info(result);
 
-        dao.findAllCustomerById(List.of(23L, 48L, 96L, 92L))
+        var ids = List.of(23L, 48L, 9600L, 92L);
+        logger.info(String.format("dao.findAllCustomersById(%s):", ids));
+        //
+        dao.findAllCustomersById(ids)
             .forEach(c -> {
-                System.out.println(String.format("Customer: %d, %s", c.getId(), c.getName()));
+                logger.info(String.format(" - found: %d, %s", c.getId(), c.getName()));
+            });
+
+        id = 2L;
+        logger.info(String.format("dao.findReservationsByCustomerId(%d):", id));
+        //
+        dao.findReservationsByCustomerId(id)
+            .forEach(r -> {
+                String begin = Reservation.dateTimeToStr(r.getBegin());
+                String end = Reservation.dateTimeToStr(r.getEnd());
+                String vehicle = "<UNKNOWN>";
+                if(vehicle_dao != null) {
+                    vehicle = vehicle_dao.findVehicleById(r.getVehicleId())
+                        .map(v -> {
+                            String veh = String.format("%s %s", v.getMake(), v.getModel());
+                            return String.format("[id: %d, %-20s]", v.getId(), veh);
+                        })
+                        .orElse(vehicle);
+                }
+                logger.info(String.format(" - RES: %d, [%s - %s], %s, vehicle: %s",
+                    r.getId(), begin, end, r.getStatus(), vehicle));
             });
     }
 }
