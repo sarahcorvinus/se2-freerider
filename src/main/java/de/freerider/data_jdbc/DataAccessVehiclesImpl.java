@@ -16,7 +16,7 @@ import de.freerider.datamodel.DataFactory;
 
 
 /**
- * Non-public implementation class or DataAccess interface.
+ * Non-public implementation class of Vehicle DataAccess interface.
  */
 @Component
 class DataAccessVehiclesImpl implements DataAccessVehicles {

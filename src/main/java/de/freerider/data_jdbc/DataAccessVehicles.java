@@ -6,7 +6,7 @@ import de.freerider.datamodel.Vehicle;
 
 
 /**
- * Public data access interface for Vehicle data.
+ * Public data Vehicle DataAccess interface.
  * 
  * @author sgra64
  */
