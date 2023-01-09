@@ -65,6 +65,7 @@ public final class Customer {
     Customer(long id, String name, String contacts, Status status) {
         if(id < 0)
             throw new IllegalArgumentException(String.format("id: %d, id < 0", id));
+        //
         this.id = id;
         setName(name);
         setContact(contacts);
