@@ -39,24 +39,9 @@ public final class Vehicle {
     private final String model;
 
     /*
-     * Vehicle attribute: seats, number of seats.
+     * ...more attributes
+     * 
      */
-    private final int seats;
-
-    /*
-     * Vehicle attribute: category (Sedan, SUV, Convertible, Van, Bike).
-     */
-    private final Category category;
-
-    /*
-     * Vehicle attribute: power, source of power (Gasoline, Diesel, Electric, Hybrid, Hydrogen).
-     */
-    private final Power power;
-
-    /*
-     * Vehicle attribute: status (Active, Serviced, Terminated).
-     */
-    private Status status;
 
 
     /**
@@ -111,10 +96,6 @@ public final class Vehicle {
         this.id = id;
         this.make = make;
         this.model = model;
-        this.seats = seats;
-        this.category = strToCategoryEnum(category);
-        this.power = strToPowerEnum(power);
-        setStatus(strToStatusEnum(status));
     }
 
 
@@ -153,9 +134,7 @@ public final class Vehicle {
      * 
      * @return number of seats in Vehicle.
      */
-    public int getSeats() {
-        return seats;
-    }
+    // public int getSeats() { }
 
 
     /**
@@ -163,9 +142,7 @@ public final class Vehicle {
      * 
      * @return category of Vehicle.
      */
-    public Category getCategory() {
-        return this.category;
-    }
+    // public Category getCategory() { }
 
 
     /**
@@ -173,9 +150,7 @@ public final class Vehicle {
      * 
      * @return power source of Vehicle.
      */
-    public Power getPower() {
-        return this.power;
-    }
+    // public Power getPower() { }
 
 
     /**
@@ -183,9 +158,7 @@ public final class Vehicle {
      * 
      * @return status of Vehicle.
      */
-    public Status getStatus() {
-        return status;
-    }
+    // public Status getStatus() { }
 
 
     /**
@@ -195,74 +168,6 @@ public final class Vehicle {
      * @return chainable self-reference.
      * @throws IllegalArgumentException for illegal status parameter.
      */
-    public Vehicle setStatus(Status status) {
-        if(status==null)
-            throw new IllegalArgumentException("status is null");
-        //
-        this.status = status;
-        return this;
-    }
+    // public Vehicle setStatus(Status status) { }
 
-
-    /**
-     * Convert category from String to enum value.
-     * Example: {@code "Active"} to {@code Status.Active}.
-     * 
-     * @param category status as String.
-     * @return category as enum value.
-     * @throws IllegalArgumentException for unparsable or not matching status String.
-     */
-    private Category strToCategoryEnum(String category) {
-        if(category==null)
-            throw new IllegalArgumentException("category is null");
-        //
-        for(var e : Category.values()) {   // ignore cases
-            if(e.name().compareToIgnoreCase(category) == 0) {
-                return e;
-            }
-        }
-        throw new IllegalArgumentException(String.format("can't parse Category from: \"%s\"", category));
-    }
-
-
-    /**
-     * Convert power from String to enum value.
-     * Example: {@code "Active"} to {@code Status.Active}.
-     * 
-     * @param power status as String.
-     * @return power as enum value.
-     * @throws IllegalArgumentException for unparsable or not matching status String.
-     */
-    private Power strToPowerEnum(String power) {
-        if(power==null)
-            throw new IllegalArgumentException("status is null");
-        //
-        for(var e : Power.values()) {   // ignore cases
-            if(e.name().compareToIgnoreCase(power) == 0) {
-                return e;
-            }
-        }
-        throw new IllegalArgumentException(String.format("can't parse Power from: \"%s\"", power));
-    }
-
-
-    /**
-     * Convert status from String to enum value.
-     * Example: {@code "Active"} to {@code Status.Active}.
-     * 
-     * @param status status as String.
-     * @return status as enum value.
-     * @throws IllegalArgumentException for unparsable or not matching status String.
-     */
-    private Status strToStatusEnum(String status) {
-        if(status==null)
-            throw new IllegalArgumentException("status is null");
-        //
-        for(var s : Status.values()) {   // ignore cases
-            if(s.name().compareToIgnoreCase(status) == 0) {
-                return s;
-            }
-        }
-        throw new IllegalArgumentException(String.format("can't parse Status from: \"%s\"", status));
-    }
 }
