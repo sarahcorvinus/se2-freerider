@@ -105,8 +105,9 @@ public final class Vehicle {
 
 
     /**
-     * Spring JPA requires a default constructor. Final attributes initialized
-     * here are overwritten by Hibernate.
+     * Non-public constructor prevents object instantiation outside this
+     * package. Spring JPA requires a default constructor.
+     * Final attributes initialized are overwritten by Hibernate.
      */
     Vehicle() {
         this.id = 0L;
