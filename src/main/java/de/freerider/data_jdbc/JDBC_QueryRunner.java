@@ -10,14 +10,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * Non-public query runner class to execute SQL/JDBC queries in database.
+ * 
+ * @author sgra64
+ */
 @Component
-public class QueryRunner_JDBC {
+class JDBC_QueryRunner {
 
     /*
      * Logger instance for this class.
      */
     private static final Logger logger =
-        LoggerFactory.getLogger(QueryRunner_JDBC.class);
+        LoggerFactory.getLogger(JDBC_QueryRunner.class);
 
     /**
      * DataAccess (object) DAO is a component to accesses data in the
@@ -33,7 +38,7 @@ public class QueryRunner_JDBC {
     @EventListener(ApplicationReadyEvent.class)
     public void runQueries() {
         //
-        logger.info("JDBC QueryRunner");
+        logger.info("--> JDBC QueryRunner");
 
         int customer_id = 2;
         // for(var rid : dao.findReservationIdsByCustomerId(customer_id)) {
