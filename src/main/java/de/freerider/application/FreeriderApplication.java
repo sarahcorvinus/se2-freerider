@@ -75,7 +75,7 @@ public class FreeriderApplication {
         //
         System.out.println(helloMessage);
         //
-        if(propertyPrintBeanInfo) {     // set value in application.yaml properties file
+        if(propertyPrintBeanInfo) {     // test value from application.yaml properties
             printBeanInfo();
         }
     }

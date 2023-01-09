@@ -57,6 +57,7 @@
             https://mvnrepository.com/artifact/org.springframework.boot
     -->
     <dependencies>
+
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -69,6 +70,25 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!--
+            Add dependencies for Java Database Connectivity (JDBC):
+             - spring-boot-starter-jdbc     # Spring JDBC package
+             - mysql-connector-java         # MySQL database connector
+        -->
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc -->
+        <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
 
     <!-- 
