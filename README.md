@@ -1,41 +1,137 @@
-# Spring Boot Project: *se2-freerider*
-Software-Engineering 2 car sharing provider project.
+# E2: JDBC Database Access &nbsp; (<span style="color:red"> X Pts </span>)
 
-Spring Boot is a comprehensive, modular framework that provides powerful capabilities for
-building Java applications that, for example, expose REST endpoints or require access
-to databases.
+*JDBC (Java DataBase Connectivity)* is the most basic interface to access data in a database.
 
-### Content:
-- [Introduction:](markup/01_SpringBoot.md) Spring Boot Introduction
-- [Assignment E1:](markup/E1_SpringBoot_Project_Setup_main.md) Spring Boot *se2-freerider* Project Setup
+Spring JDBC consists of:
+
+- a *database connector* to establish a connection to the database with
+
+    - a Maven dependency of the `spring-boot-starter-data-jpa` package:
+
+        ```
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        ```
+
+    - the configuration of the database connection in `src/main/resources/application.yaml`:
+
+        ```sh
+        # connection to database (assumed running on localhost, listening on port 3306)
+        #
+        spring:
+          datasource:
+            url: jdbc:mysql://localhost:3306/FREERIDER_DB
+            username: freerider
+            password: free.ride
+        ```
+
+- an access class `JdbcTemplate` ( [javadoc](`https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html`) )
+that offers database operations to:
+
+    - `execute` SQL statements expecting no data returned.
+
+    - `query` SQL statements that expect data being returned as `ResultSet`.
+
+    - `update` SQL statements that alter data (SQL INSERT, UPDATE, DELETE) 
+
+- a data structure called `ResultSet` that contains results from a query structured
+    as a set of rows (no order is guaranteed) of indexed arrays of data for each
+    row with data types as stored in the database.
+
+    ```
+    Query: SELECT * FROM CUSTOMER WHERE ID <= 3;
+    
+    ResultSet:
+    index:
+     1.(int)  2. (String)          3. (String)          4. (String)
+    +-------+---------------------+--------------------+--------------+
+    |  ID   | NAME                | CONTACT            | STATUS       |
+    +-------+---------------------+--------------------+--------------+
+    |   1   | Meyer, Eric         | eme22@gmail.com    | Active       | <- row 1
+    |   2   | Sommer, Tina        | 030 22458 29425    | Active       | <- row 2
+    |   3   | Schulze, Tim        | +49 171 2358124    | Active       | <- row 3
+    +-------+---------------------+--------------------+--------------+
+    ```
+
+    The `ResultSet` returned for the query is comprised of three rows
+    with each row containing data:
+
+    Example of the indexed structure for row 1:
+    - index[1]: type `int`, value: `1`,
+    - index[2]: type `String`, value: `"Meyer, Eric"`,
+    - index[3]: type `String`, value: `"eme22@gmail.com"`,
+    - index[4]: type `String`, value: `"Active"`.
+
+Row-data must explictely be converted into objects from a `ResultSet`.
+
 
 
 &nbsp;
 
 ---
+## 1. Enable JDBC database access
 
-### Spring Boot Reference Documentation
-For further reference, please consider the following sections:
+Pull from branch [jdbc](https://github.com/sgra64/se2-freerider/tree/jdbc) packages
 
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/maven-plugin/reference/html/)
-* [Create an OCI image](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/maven-plugin/reference/html/#build-image)
-* [Spring Boot DevTools](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/reference/htmlsingle/#using.devtools)
-* [Spring Web](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/reference/htmlsingle/#web)
-* [Rest Repositories](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/reference/htmlsingle/#howto.data-access.exposing-spring-data-repositories-as-rest)
-* [JDBC API](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/reference/htmlsingle/#data.sql)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.0.0-RC1/reference/htmlsingle/#data.sql.jpa-and-spring-data)
+- `de.freerider.data_jdbc`,
 
-### Guides
-The following guides illustrate how to use some features concretely:
+- `de.freerider.datamodel`
 
-* [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
-* [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
-* [Building REST services with Spring](https://spring.io/guides/tutorials/rest/)
-* [Accessing JPA Data with REST](https://spring.io/guides/gs/accessing-data-rest/)
-* [Accessing Neo4j Data with REST](https://spring.io/guides/gs/accessing-neo4j-data-rest/)
-* [Accessing MongoDB Data with REST](https://spring.io/guides/gs/accessing-mongodb-data-rest/)
-* [Accessing Relational Data using JDBC with Spring](https://spring.io/guides/gs/relational-data-access/)
-* [Managing Transactions](https://spring.io/guides/gs/managing-transactions/)
-* [Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/)
-* [Accessing data with MySQL](https://spring.io/guides/gs/accessing-data-mysql/)
+and add to the `se2-freerider` project.
+
+Pull package [de.freerider.datamodel]()
+and add to the project (datamodel classes: Customer.java, Vehicle.java, Reservation.java).
+
+Add the dependency `spring-boot-starter-data-jpa`
+and set the database connection in `src/main/resources/application.yaml`
+as descibed above.
+
+Validate that the project compiles with the `de.freerider.data_jdbc` package.
+
+```
+mvn compile
+```
+
+
+
+
+
+
+
+
+
+
+
+<!-- [](https://docs.spring.io/spring-framework/docs/3.0.0.M3/reference/html/ch01.html)
+
+Terms *Inversion of Control (IoC)* and *Dependency Injection (DI)* are often
+used interchangeably.
+
+
+
+[database](https://github.com/sgra64/db-freerider)
+and provide REST endpoints for a car sharing reservation system.
+
+Spring Boot is a modular framework suitable to build Java applications that expose REST endpoints
+and require access to databases.
+
+Creating a Spring Boot application requires using a build-tool (*maven* or *gradle*) and
+follows certain steps. A Spring Boot project also has a certain structure.
+
+### Challenges
+1. [Challenge 1:](#1-initialize-new-spring-boot-project) Initialize new Spring Boot Project - (2 Pts)
+2. [Challenge 2:](#2-build-and-run-the-application) Build and Run the Application - (2 Pts)
+3. [Challenge 3:](#3-build-and-run-tests) Build and Run Tests - (2 Pts)
+4. [Challenge 4:](#4-build-and-run-test-reports) Build and Run Test Reports - (1 Pts)
+5. [Challenge 5:](#5-check-project-into-remote-repository) Check Project into your own Remote Repository - (2 Pts)
+
+
+&nbsp;
+
+---
+## 1. Initialize new Spring Boot Project
+
+Configure  -->
