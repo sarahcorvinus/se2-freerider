@@ -52,9 +52,6 @@ class DataAccessVehiclesImpl implements DataAccessVehicles {
             }
         );
         return result.size() > 0? (long)(result.get(0)) : 0;
-        //
-        // TODO implement auto-generated method stub
-        // return 0;
     }
 
 
@@ -75,9 +72,6 @@ class DataAccessVehiclesImpl implements DataAccessVehicles {
         .filter(opt -> opt.isPresent())
         .map(opt -> opt.get())
         .collect(Collectors.toList());
-        //
-        // TODO implement auto-generated method stub
-        // return new java.util.ArrayList<Vehicle>();
     }
 
 
@@ -99,9 +93,6 @@ class DataAccessVehiclesImpl implements DataAccessVehicles {
             (rs, rowNum) -> createVehicle(rs)
         );
         return result.size() > 0? result.get(0) : Optional.empty();
-        //
-        // TODO implement auto-generated method stub
-        // return Optional.empty();
     }
 
 
@@ -131,9 +122,6 @@ class DataAccessVehiclesImpl implements DataAccessVehicles {
         .filter(opt -> opt.isPresent())
         .map(opt -> opt.get())
         .collect(Collectors.toList());
-        //
-        // TODO implement auto-generated method stub
-        // return new java.util.ArrayList<Vehicle>();
     }
 
 
