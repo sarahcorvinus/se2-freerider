@@ -27,3 +27,5 @@ logging:
   level:
     root: ERROR               # disable Spring Boot logs
     '[de.freerider]': INFO    # allow application-level INFO logs
+    '[org.springframework.jdbc.core]': TRACE  # log SQL statements
+
