@@ -265,16 +265,16 @@ public interface DataAccess {
 
 
     /**
-     * Run complex query that returns all reservations held by a customer.
+     * Run query that returns all reservations held by a customer.
      * This is a JOIN-query between Reservation and Customer:
      * - query:
      *     SELECT RESERVATION.* FROM CUSTOMER
-             JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID
-            WHERE CUSTOMER.ID = ?"
-        * 
-        * @param customer_id id of owning Customer.
-        * @return Reservations with matching customer_id.
-        */
+     *     JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID
+     *     WHERE CUSTOMER.ID = ?"
+     * 
+     * @param customer_id id of owning Customer.
+     * @return Reservations with matching customer_id.
+     */
     Iterable<Reservation> findReservationsByCustomerId(long customer_id);
 
 }

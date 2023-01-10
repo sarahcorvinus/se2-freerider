@@ -224,8 +224,8 @@ class DataAccessImpl implements DataAccess {
      * This is a JOIN-query between Reservation and Customer:
      * - query:
      *     SELECT RESERVATION.* FROM CUSTOMER
-           JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID
-           WHERE CUSTOMER.ID = ?"
+     *     JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID
+     *     WHERE CUSTOMER.ID = ?"
      * 
      * @param customer_id id of owning Customer.
      * @return Reservations with matching customer_id.
