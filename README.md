@@ -1,150 +1,235 @@
-# E2: JDBC Database Access &nbsp; (<span style="color:red"> 12 Pts </span>)
+# E3: *se2-freerider* REST Endpoints &nbsp; (<span style="color:red"> 12 Pts + 8 ZP </span>)
 
-*JDBC (Java DataBase Connectivity)* is the most basic interface to access data in a database.
 
-Spring JDBC consists of:
+Definitions:
 
-- a *database connector* to establish a connection to the database with
+- *Endpoint* in network comminications generally refers the ending-point of a communication
+    with an *address* at which messages are received and a *protocol* the endpoint understands.
 
-    - a Maven dependency of the `spring-boot-starter-data-jpa` package:
+- *Protocol* in networks defines the data formats of messages and the rules of message
+    exchange (Ethernet, IEEE 802.x, IP, TCP, HTTP, SSH, WebSockets are examples of protocols).
 
-        ```
-        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        ```
+- *Client / Server* is a technical architecture with
 
-    - the configuration of the database connection in `src/main/resources/application.yaml`:
+  - multiple clients (applications) exchanging messages with
 
-        ```sh
-        # connection to database (assumed running on localhost, listening on port 3306)
-        #
-        spring:
-          datasource:
-            url: jdbc:mysql://localhost:3306/FREERIDER_DB
-            username: freerider
-            password: free.ride
-        ```
+  - a single server, examples:
+    - HTTP-server *httpd*,
+    - database-server *mysqld*,
+    - ssh-server *sshd*.
 
-- an access class `JdbcTemplate` ( [javadoc](`https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html`) )
-that offers database operations to:
+- *REST* (Representational State Transfer) is a design pattern for *Endpoints*
+    for modern applications and services.
 
-    - `execute` SQL statements expecting no data returned.
+- *REST endpoints*:
 
-    - `query` SQL statements that expect data being returned as `ResultSet`.
+  - use the HTTP or HTTPS protocols with operations: GET, PUT, PATCH, POST and DELETE.
 
-    - `update` SQL statements that alter data (SQL INSERT, UPDATE, DELETE) 
+  - use JSON Data for exchanges over HTTP-Requests and -Replies.
 
-- a data structure called `ResultSet` that contains results from a query structured
-    as a set of rows (no order is guaranteed) of indexed arrays of data for each
-    row with data types as stored in the database.
+  - use the URL of the HTTP-Server with added *Routes* (paths) to address
 
-    ```
-    Query: SELECT * FROM CUSTOMER WHERE ID <= 3;
-    
-    ResultSet:
-    index:
-     1.(int)  2. (String)          3. (String)          4. (String)
-    +-------+---------------------+--------------------+--------------+
-    |  ID   | NAME                | CONTACT            | STATUS       |
-    +-------+---------------------+--------------------+--------------+
-    |   1   | Meyer, Eric         | eme22@gmail.com    | Active       | <- row 1
-    |   2   | Sommer, Tina        | 030 22458 29425    | Active       | <- row 2
-    |   3   | Schulze, Tim        | +49 171 2358124    | Active       | <- row 3
-    +-------+---------------------+--------------------+--------------+
-    ```
+    - a single *Resource* - with singular used in the route-name, e.g. `/status`
+        (single resource to inquire the system status) or
 
-    The `ResultSet` returned for the query is comprised of three rows
-    with each row containing data:
+    - a *Resource Set* - with plural used in the route-name, e.g. `/reservations`
+        (multiple reservations in the system)
 
-    Example of the indexed structure for row 1:
-    - index[1]: type `int`, value: `1`,
-    - index[2]: type `String`, value: `"Meyer, Eric"`,
-    - index[3]: type `String`, value: `"eme22@gmail.com"`,
-    - index[4]: type `String`, value: `"Active"`.
+        to which messages are delivered.
 
-Row-data must explictely be converted into objects from a `ResultSet`.
+  - use *Controllers* for each *Resource / ResourceSet* with methods that are
+        invoked when the server receives an HTTP-Request that is addressed to the resource/-set.
+
+- *REST API* define a *collection of endpoints* exposed by an application or a service and
+    therefore define the interface of that application or a service.
+
+  - REST API should be *versioned* by starting routes with `/v1/...` so that multiple API Versions
+    can coexist.
+
+  - REST API should be *documented* using a standard:
+    [OpenAPI, v3.1.0](https://spec.openapis.org/oas/v3.1.0).
+
+  - REST API should be *"live"* and developed with tools, e.g. [Swagger](https://swagger.io).
+
+  - Examples of REST API:
+
+    - [PetStore](https://petstore.swagger.io), Swagger API,
+
+    - [Spotify](https://developer.spotify.com/documentation/web-api/reference/#/), REST API,
+
+    - [OpenWeather](https://openweathermap.org/api), REST API.
+
+See article *John Au-Yeung, Ryan Donovan: [Best practices for REST API design](https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design)*, Feb. 2020.
 
 
 &nbsp;
 
+The reservation system of the *se2-freerider* application has three endpoints:
+
+- `/customers` - with: GET, POST (new customer), PUT (update customer information),
+
+- `/vehicles` - with: GET (only retrieve vehicle information).
+
+- `/reservations` - with: GET, POST (new reservation inquiry), PUT (update reservation, e.g. status),
+    DELETE.
+
+
+&nbsp;
+
+Each endpoint defines operations with:
+
+- a HTTP operation,
+
+- a Route,
+
+- a Data schema for (JSON)-Objects sent with the HTTP-Request,
+
+- a Data schema of (JSON)-Objects received with the HTTP-Reply,
+
+- a set of [HTTP Response Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
+    (200: ok, 404: not found, etc.).
+
+The following defines `CRUD`-operations for the `/customers` endpoint.
+
+The full definition of the `/customers` endpoint without schema for data objects is:
+
+
+&nbsp;
+
+<style>
+    table td, table td * {
+        vertical-align: top;
+    }
+    .bolded { font-weight: bold; }
+    .route { font-weight: bold; }
+    .ok { color: lightgreen; }
+    .err { color: red; }
+</style>
+<table>
+<th>CRUD<th>HTTP-Operation<th>Route<th>HTTP-Request<th>HTTP-Reply<tr>
+
+<td>Create<td>
+    <span class="bolded">POST</span><td>
+    <span class="route">/customers</span><td>
+    Create new Customer.<br>
+    - Data: JSON with Customer data im Request‐Body, new id is assigned by the system.<td>
+    Response Codes:
+    <span class="ok">201</span>: created,
+    <span class="err">400</span>: bad request {json body},
+    <span class="err">409</span>: conflict, e.g. object not accepted.<tr>
+
+<td>Read<td>
+    <span class="bolded">GET</span><td>
+    <span class="route">/customers<br></span><td>
+    Return all Customer data as JSON.<td>
+    JSON with all Customer data in Response‐Body.<br>
+    Response Codes:
+    <span class="ok">200</span>: ok<tr>
+
+<td>Read<td>
+    <span class="bolded">GET</span><td>
+    <span class="route">/customers/{id}</span><td>
+    Return JSON for Customer with id.<br>
+    - Parameter: id.<td>
+    JSON for Customer data in Response‐Body.<br>
+    Response Codes:
+    <span class="ok">200</span>: ok,
+    <span class="err">400</span>: bad request {id},
+    <span class="err">404</span>: not found.<tr>
+
+<td>Update<td>
+    <span class="bolded">PUT</span><td>
+    <span class="route">/customers</span><td>
+    Update Customer. Customer with id must exist.<br>
+    - Data: Customer data as JSON im Request‐Body, includes id.<td>
+    Response Codes:
+    <span class="ok">202</span>: accepted,
+    <span class="err">400</span>: bad request {json body},
+    <span class="err">404</span>: not found.<tr>
+
+<td>Delete<td>
+    <span class="bolded">DELETE</span><td>
+    <span class="route">/customers/{id}</span><td>
+    Delete Customer with id.<td>
+    <span class="ok">202</span>: accepted,
+    <span class="err">400</span>: bad request {id},
+    <span class="err">404</span>: not found,
+    <span class="err">409</span>: conflict (foreign key dependency).<tr>
+
+</table>
+
+
 ---
+
+&nbsp;
+
 ### Challenges
-1. [Challenge 1:](#1-start-the-database-server) Start the database server - (1 Pt)
-2. [Challenge 2:](#2-enable-spring-for-jdbc-access-to-the-database) Enable Spring for JDBC access to the database - (1 Pt)
-3. [Challenge 3:](#3-understand-the-dao-dataaccess-interface) Understand the DAO DataAccess interface - (2 Pts)
-4. [Challenge 4:](#4-understand-dao-queries) Understand DAO Queries - (2 Pts)
-5. [Challenge 5:](#5-understand-jdbc-code) Understand JDBC Code - (1 Pt)
-6. [Challenge 6:](#6-complete-the-vehicle-data-model-class) Complete the Vehicle data model class - (2 Pts)
-7. [Challenge 7:](#7-implement-the-dataaccessvehicles-dao-interface) Implement the DataAccessVehicles DAO interface - (3 Pts)
+1. [Challenge 1:](#1-run-customersrestcontroller-that-supports-the-customers-entdpoint) Run CustomersRestController that supports the /customers entdpoint  - (1 Pt)
+2. [Challenge 2:](#2-explore-swagger-ui) Explore Swagger UI - (1 Pt)
+3. [Challenge 3:](#3-define-endpoints) Define Endpoint - (4 Pts)
+4. [Challenge 4:](#4-build-endpoint-vehicles) Build Endpoint /vehicles - (2 Pts)
+5. [Challenge 5:](#5-build-endpoint-reservations-mocked) Build Endpoint /reservations (mocked) - (4 Pt)
+6. [Challenge 6:](#6-build-dataaccessreservations-to-support-reservations) Build DataAccessReservations to support /reservations - (+4 ZP)
+7. [Challenge 7:](#7-build-endpoint-reservations-real) Build Endpoint /reservations (real) - (+4 ZP)
 
 
 &nbsp;
 
 ---
-## 1. Start the database server
+## 1. Run CustomersRestController that supports the /customers entdpoint
 
-Start the database server. Make sure the database is ready and has data.
-
-Run some queries:
-
-```
-mysql> SELECT COUNT(*) FROM CUSTOMER;
-mysql> SELECT COUNT(*) FROM VEHICLE;
-mysql> SELECT COUNT(*) FROM RESERVATION;
-```
-
-Output:
-```
-CUSTOMER:            VEHICLE:             RESERVATION:
-+----------+         +----------+         +----------+
-| COUNT(*) |         | COUNT(*) |         | COUNT(*) |
-+----------+         +----------+         +----------+
-|      214 |         |      265 |         |        5 |
-+----------+         +----------+         +----------+
-```
-
-
-&nbsp;
-
----
-## 2. Enable Spring for JDBC access to the database
-
-Pull packages from [jdbc](https://github.com/sgra64/se2-freerider/tree/jdbc) branch:
-
-- `de.freerider.data_jdbc`,
-
-- `de.freerider.datamodel`
-
-and add to the `se2-freerider` project.
-
-You can pull packages separately or checkout the entire `jdbc` branch
-in a separate directory:
+Pull code-drop from branch
+[jdbc_ep](https://github.com/sgra64/se2-freerider/tree/jdbc_ep)
+and integrate into the `se2-freerider` project:
 
 ```
-git clone --branch jdbc https://github.com/sgra64/se2-freerider.git
+Updated:
+src/main/java/de/freerider/application/FreeriderApplication.java
+src/main/java/de/freerider/data_jdbc/DataAccess.java
+src/main/java/de/freerider/data_jdbc/DataAccessImpl.java
+src/main/java/de/freerider/data_jdbc/JDBC_QueryRunner.java
+src/main/java/de/freerider/data_jdbc/DataAccessException.java
+src/main/resources/application.yaml
+
+New:
+src/main/java/de/freerider/endpoints/CustomersEP.java
+src/main/java/de/freerider/endpoints/CustomersEPDoc.java
+src/main/java/de/freerider/endpoints/CustomersRestController.java
+
+src/main/resources/swagger.properties
+src/main/java/de/freerider/application/SwaggerConfig.java
 ```
 
-Check the dependency `spring-boot-starter-data-jpa` in `pom.xml` and add if
-needed (see above).
+Add dependencies to `pom.xml` to include the HTTP-server (tomcat) and
+Swagger/OpenAPI.
 
-Check the presence of the database connection information in
-`src/main/resources/application.yaml`
-and add if needed (see above).
+```
+https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
+no version (inherited from Spring Boot)
 
-Source, build and run the cloned project:
+https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
+version: 2.0.2
+```
 
-```py
-source .env.sh      # set environment variables
-mvn package         # full build and package
-.run.sh             # run with run-script or with
+1.) Build the project.
+
+```
+mvn compile
+mvn package -DskipTests=true
+
+ls -la target
+total 27288
+-rwxrwxr-x+ 1 svgr2 Kein 27876095 Jan 17 20:13 se2-freerider-0.0.1-SNAPSHOT.jar*
+-rwxrwxr-x+ 1 svgr2 Kein    48468 Jan 17 20:13 se2-freerider-0.0.1-SNAPSHOT.jar.original*
+```
+
+2.) Start the database (wait until the database server *mysqld* is up in the container).
+
+3.) Run the Spring application:
+```
 java -jar target/se2-freerider-0.0.1-SNAPSHOT.jar
-```
 
-Output:
-```
+20:15:38.533 [main] INFO de.freerider.application.FreeriderApplication -
 (0.) Spring Container starting.
 
   .   ____          _            __ _ _
@@ -155,474 +240,293 @@ Output:
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.0.1)
 
-Starting FreeriderApplication v0.0.1-SNAPSHOT using Java 19 with PID 12180 (C:\S
-ven1\svgr\tmp\se2-freerider\target\se2-freerider-0.0.1-SNAPSHOT.jar started by s
-vgr2 in C:\Sven1\svgr\tmp\se2-freerider)
+Starting FreeriderApplication v0.0.1-SNAPSHOT using Java 19 with PID 14500 (C:\S
+ven1\svgr\workspaces\2-SE\se2-freerider\target\se2-freerider-0.0.1-SNAPSHOT.jar
+started by svgr2 in C:\Sven1\svgr\workspaces\2-SE\se2-freerider)
 No active profile set, falling back to 1 default profile: "default"
-
-(1.) FreeriderApplication instance created.
-DataFactoryImpl() constructor: instance created
-Started FreeriderApplication in 2.342 seconds (process running for 3.23)
-
+...
+Tomcat initialized with port(s): 8080 (http)    <-- HTTP-Server started
+Starting service [Tomcat]
+...
 (2.) Spring Container ready.
 Hello FreeriderApplication!
---> JDBC QueryRunner
-Executing SQL query [SELECT COUNT(ID) FROM CUSTOMER]
-dao.countCustomers() -> 214
-dao.findAllCustomers() -> 214 Customers found
-Executing prepared SQL query
-Executing prepared SQL statement [SELECT * FROM CUSTOMER WHERE ID = ?]
-dao.findCustomerById(24) -> found: Hübner, Kathrin
-dao.findAllCustomersById([23, 48, 9600, 92]):
- - found: 23, Kohl, Gero
- - found: 48, Wimmer, Kathleen
- - found: 92, Kärner, Klaus-Jürgen
-dao.findReservationsByCustomerId(2):
-Executing prepared SQL statement [SELECT RESERVATION.* FROM CUSTOMER JOIN RESERV
-ATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID WHERE CUSTOMER.ID = ?]
- - RES: 145373, [2022-12-04 20:00:00 - 2022-12-04 23:00:00], Inquired, vehicle:
-<UNKNOWN>
- - RES: 351682, [2023-01-07 18:03:26 - 2023-01-07 20:03:26], Inquired, vehicle:
-<UNKNOWN>
- - RES: 382565, [2022-12-18 18:00:00 - 2022-12-18 18:10:00], Inquired, vehicle:
-<UNKNOWN>
- - RES: 682351, [2022-12-18 10:00:00 - 2022-12-18 16:00:00], Inquired, vehicle:
-<UNKNOWN>
 
-(3.) Spring Container exited.
+Tomcat waiting for HTTP-requests...
 ```
 
-The program runs a couple of SQL Queries that are logged to the console with
-other output:
-```
-Executing SQL query [SELECT COUNT(ID) FROM CUSTOMER]
-Executing prepared SQL query
-Executing prepared SQL statement [SELECT * FROM CUSTOMER WHERE ID = ?]
-Executing prepared SQL statement [SELECT RESERVATION.* FROM CUSTOMER JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID WHERE CUSTOMER.ID = ?]
-```
+4.) Wait for application startup until the HTTP-Server (Tomcat) ready and waiting for HTTP-Requests.
 
-Spring can now connect to the database and run SQL queries.
+5.) Open
+[http://localhost:8080/swagger-ui/index.html#/](http://localhost:8080/swagger-ui/index.html#/)
+in a browser.
+
+6.) Swagger-UI should appear showing the API for the `/customers` endpoint.
 
 
 &nbsp;
 
 ---
-## 3. Understand the DAO DataAccess interface
+## 2. Explore Swagger UI
 
-DAO (Data Access Object) has emerged as term for "an access object" through which
-data in a database are queried.
+Swagger API for the `/customers` endpoint:
 
-The DAO offers suitable query methods defined in an interface (`DataAccess.java`)
-that are then implemented in an implementation class (`DataAccessImpl.java`).
+&nbsp;
 
-The implementation class hides and encapsulates the "raw" SQL statements issued
-to the database.
+![](./img01_swagger_ui.png)
 
-It also performs a mapping of data returned from the database (as records with numbers
-and Strings) into objects of
-[datamodel](https://github.com/sgra64/se2-freerider/tree/jdbc/src/main/java/de/freerider/datamodel)
-classes: `Customer.java`, `Vehicle.java` and `Reservation.java`.
+1. Open route `GET /customers`
 
-The DAO interface
-([DataAccess.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/DataAccess.java))
-therefore presents an abstraction for database access.
+    - select "Try-it-out"
 
-Compare the raw SQL statements given in comments with the signature of the methods,
-including a complex JOIN-Query in `findReservationsByCustomerId(id)`:
+    - "Execute"
+
+Swagger-UI (browser) sends a GET-Request to the HTTP-Server, which forwards the
+request to code registered for `GET /customers` in package `endpoints`:
+
+- `CustomersEP.java` - interface with `@RequestMapping` annotations.
+
+- `CustomersEPDoc.java` - interface with OpenAPI doc annotations that appear in
+    Swagger-UI and in OpenAPI-docs.
+
+- `CustomersRestController.java` - non-public implementation of interface with
+    actual code.
+
+
+Method annotated with `@GetMapping("/v1/customers")` in `CustomersEP.java`:
 
 ```java
-public interface DataAccess {
+@RequestMapping("/v1/customers")
+public interface CustomersEP extends CustomersEPDoc {
 
-    /**
-     * Run query that returns the number of Customers in the database:
-     * - query: SELECT COUNT(ID) FROM CUSTOMER;
-     * - returns number extracted from ResultSet.
-     * 
-     * @return number of Customer records in the database.
-     */
-    long countCustomers();
-
-    /**
-     * Run query that returns one Customers with a given id.
-     * - query: SELECT * FROM CUSTOMER WHERE ID = 10;
-     * - returns Customer object created from ResultSet row.
-     * 
-     * @param id Customer id (WHERE ID = ?id)
-     * @return Optional with Customer or empty if not found.
-     */
-    Optional<Customer> findCustomerById(long id);
-
-
-    /**
-     * Run query that returns all Customers with matching id in ids.
-     * - query: SELECT * FROM CUSTOMER WHERE ID IN (10, 20, 30000, 40);
-     * - returns Customer objects created from ResultSet rows.
-     * 
-     * @param ids Customer ids (WHERE IN (?ids))
-     * @return Customers with matching ids.
-     */
-    Iterable<Customer> findAllCustomersById(Iterable<Long> ids);
-
-
-    /**
-     * Run query that returns all reservations held by a customer.
-     * This is a JOIN-query between Reservation and Customer:
-     * - query:
-     *     SELECT RESERVATION.* FROM CUSTOMER
-     *     JOIN RESERVATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID
-     *     WHERE CUSTOMER.ID = ?"
-     * 
-     * @param customer_id id of owning Customer.
-     * @return Reservations with matching customer_id.
-     */
-    Iterable<Reservation> findReservationsByCustomerId(long customer_id);
-
+    @GetMapping("")
+    @Override
+    Iterable<Customer> findAllCustomers();
+  ...
 }
 ```
 
-Answer questions:
+Code for interface methods is in `CustomersRestController.java`, which is registered
+as `@RestController` in Spring. Code uses the JDBC-DAO (Data-Access-Object) from the
+`data_jdbc`-package that offers access methods to query the database:
 
-1. How is in `findCustomerById(id)` indicated that a customer does not
-    exist for an `id`?
+```java
+@RestController
+class CustomersRestController implements CustomersEP {
 
-1. Why is `Iterable<T>` used as return type over `List<T>` for some methods?
-
-1. Formulate an SQL-Query that supports a method:
-    ```java
-    long numberOfReservationsByCustomer(long customer_id);
-    ```
-    Try the query in `mysql` to see if it returns the desired result. Make sure
-    the query **returns only the need data (a number)**, not an entire list.
-
-1. Formulate an SQL-Query that supports a method:
-    ```java
-    Iterable<Vehicle> findUsableElectricCars();
-    ```
-    with "usable" refering to electric cars that are not retired or in service.
-    Try the query in `mysql`.
-
-1.  Formulate an SQL-Query that supports a method:
-    ```java
-    Iterable<Reservation> findReservations(long from, long to);
-    ```
-    with `from` and `to` referring to a timeframe within which all returned
-    reservations must be.
-
-
-&nbsp;
-
----
-## 4. Understand DAO Queries
-
-Read code in `JDBC_QueryRunner.java` and answer question:
-
-1. Why does `JDBC_QueryRunner.java` execute although method
-    `runQueries()` is called nowhere?
-
-1. Class `JDBC_QueryRunner.java` uses a local variable `dao` to reference
-    the "DataAccess-Object" (DAO) that implements the interface.
-    ```java
+    /**
+     * DataAccess (object) DAO is a component to accesses data in the
+     * database through SQL queries.
+     */
     @Autowired
     private DataAccess dao;
-    ```
-    How many objects exist for the interface and who creates them?
 
-    Who initializes this variable? What is the effect of `@Autowired`?
-
-1. Understand queries in the `runQueries()` method and which output they
-    log to the console, e.g.:
-    ```java
-    var ids = List.of(23L, 48L, 9600L, 92L);
-    logger.info(String.format("dao.findAllCustomersById(%s):", ids));
-    //
-    dao.findAllCustomersById(ids)
-        .forEach(c -> {
-            logger.info(String.format(" - found: %d, %s", c.getId(), c.getName()));
-        });
-    ```
-    Output logged to the console:
-    ```perl
-    dao.findAllCustomersById([23, 48, 9600, 92]):
-     - found: 23, Kohl, Gero
-     - found: 48, Wimmer, Kathleen          # Customer id: 9600 does not exist
-     - found: 92, Kärner, Klaus-Jürgen
-    ```
-    Run the query for two more customers: *"Urban, Cordula"* and *"Geiger, Valerie"*.
-
-1. Which data type does `findAllCustomersById(ids)` return?
-
-
-&nbsp;
-
----
-## 5. Understand JDBC Code
-
-[DataAccessImpl.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/DataAccessImpl.java)
-contains the code that implements the DAO interface methods with *"JDBC"-Code*,
-which consists of five main parts:
-
-1. opening a connection to the database providing a *"connection object"* through
-    which actual database operations are performed.
-    Spring creates a bean of type
-    [JdbcTemplate.java](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html)
-    for this.
-
-1. Running SQL Operations in the database with:
-
-    a.) "prepare" SQL statements with data derived from
-    [PreparedStatement.java](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/PreparedStatement.html)
-    , which is injecting values into the SQL Query such as a customer_id.
-    Placeholders `"?"` are used to indicate where values are injected, e.g.:
-    ```perl
-    WHERE CUSTOMER.ID = ?   # <-- replace "?" with actual ID value
-    ```
-
-    b.) send prepared statements to the database for execution and wait for the result.
-
-    c.) Wait for an answer from the database, which is returned of type
-    [ResultSet.java](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/ResultSet.html).
-
-    - A `ResultSet` corresponds to a table with `rows` and indexed `fields`
-    within `rows`. ResultSet tables can differ from database tables and include
-    computed fields (SQL functions) or fields combined from tables (joins).
-
-    - Data can be extracted from a `ResultSet` and, for instance, Customer - objects
-    created.
-
-1. close the database connection.
-
-Answer questions:
-
-1. What does the `@Component` annotation mean? Why is it needed for the implementation class?
-    ```java
-    @Component
-    class DataAccessImpl implements DataAccess {
-        ...
-    }
-    ```
-
-1. Explain the code in
-    [DataAccessImpl.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/DataAccessImpl.java).
-
-    - Where is the SQL statement "prepared"? What happens?
-
-    - Where is the ResultSet "received"? In which form?
-
-    - Where are values extracted from the ResultSet?
-
-    - What is done with values extracted from the ResultSet?
-
-
-    ```java
-    /**
-     * Run query that returns all Customers with matching id in ids.
-     * - query: SELECT * FROM CUSTOMER WHERE ID IN (10, 20, 30000, 40);
-     * - returns Customer objects created from ResultSet rows.
-     * 
-     * @param ids Customer ids (WHERE IN (?ids))
-     * @return Customers with matching ids.
-     */
     @Override
-    public Iterable<Customer> findAllCustomersById(Iterable<Long> ids) {
-
-        /*
-         * Map ids (23, 48, 96) to idsStr: "23, 48, 96"
-         */
-        String idsStr = StreamSupport.stream(ids.spliterator(), false)
-            .map(id -> String.valueOf(id))
-            .collect(Collectors.joining(", "));
+    public Iterable<Customer> findAllCustomers() {
         //
-        var result = jdbcTemplate.queryForStream(
-            /*
-             * Prepare statement (ps) with "?"-augmented SQL query.
-             */
-            String.format("SELECT * FROM CUSTOMER WHERE ID IN (%s)", idsStr),
-
-            /*
-             * Extract values from ResultSet for each row.
-             */
-            (rs, rowNum) -> {
-                long id = rs.getInt("ID");
-                String name = rs.getString("NAME");
-                String contact = rs.getString("CONTACT");
-                String status = rs.getString("STATUS");
-                /*
-                 * Create Optional<Customer> from values.
-                 */
-                return dataFactory.createCustomer(id, name, contact, status);
-            }
-        )
-        /*
-         * Remove empty results from stream of Optional<Customer>,
-         * map remaining from Optional<Customer> to Customer and
-         * collect result.
-         */
-        .filter(opt -> opt.isPresent())
-        .map(opt -> opt.get())
-        .collect(Collectors.toList());
-        //
-        return result;
+        return dao.findAllCustomers();  // query database and return all Customer objects
     }
-    ```
-
-1. Explain the final stream operations and what the type is of `result`?
-
-    ```java
-    public Iterable<Customer> findAllCustomersById(Iterable<Long> ids) {
-        var result = jdbcTemplate.queryForStream( ... )
-            .filter(opt -> opt.isPresent())
-            .map(opt -> opt.get())
-            .collect(Collectors.toList());
-        //
-        return result;
-    }
-    ```
-
-
-&nbsp;
-
----
-## 6. Complete the Vehicle data model class
-
-Output for Vehicles in the four Reservations found for Customer `id: 2` is still
-`<UNKNOWN>`. Reason is that datamodel class `Vehicle.java` is not complete.
-
-```
-dao.findReservationsByCustomerId(2):
-Executing prepared SQL statement [SELECT RESERVATION.* FROM CUSTOMER JOIN RESERV
-ATION ON RESERVATION.CUSTOMER_ID = CUSTOMER.ID WHERE CUSTOMER.ID = ?]
- - RES: 145373, [2022-12-04 20:00:00 - 2022-12-04 23:00:00], Inquired, vehicle:
-<UNKNOWN>
- - RES: 351682, [2023-01-07 18:03:26 - 2023-01-07 20:03:26], Inquired, vehicle:
-<UNKNOWN>
- - RES: 382565, [2022-12-18 18:00:00 - 2022-12-18 18:10:00], Inquired, vehicle:
-<UNKNOWN>
- - RES: 682351, [2022-12-18 10:00:00 - 2022-12-18 16:00:00], Inquired, vehicle:
-<UNKNOWN>
-```
-
-Inspect the other (complete) datamodel classes (Customer, Reservation) and understand
-how attributes relate to the structure of corresponding tables.
-
-Understand in particular how data types:
-
-- DATETIME for begin and end of a reservation (in `Reservation.java`) and
-
-- and `enum`, e.g. for `enum Status`,
-
-are mapped between SQL types and Java.
-
-Also refer to the `datamodel` factory interface
-[DataFactory.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/datamodel/DataFactory.java) and implementation
-[DataFactoryImpl.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/datamodel/DataFactoryImpl.java)
-that is used to create Customer, Vehicle and Reservation objects for `ResultSet`
-processing (see
-[DataAccessImpl.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/DataAccessImpl.java)
-) rather than using Constructors.
-
-Compare types passed in the `createVehicle(....)` - method(), particularly for the
-`enum` types `Category`, `Power` and `Status`:
-
-```java
-/**
- * Public interface of a factory that creates objects for datamodel classes <T>.
- * 
- * Factory create() methods return type Optional<T> that only contain objects
- * of type T when valid objects could be created from valid parameters.
- * Otherwise, the returned Optional is empty.
- * 
- * @author sgra64
- */
-public interface DataFactory {
-
-    Optional<Customer> createCustomer(long id, String name, String contacts, String status);
-
-    /**
-     * Create new Vehicle object from parameters.
-     * 
-     * @param id unique identifier, PRIMARY KEY in database.
-     * @param make brand name of Vehicle, e.g. "VW" or "Tesla"
-     * @param model model name of Vehicle, e.g. "ID.4"
-     * @param seats number of seats in Vehicle.
-     * @param category category of Vehicle (String must match Vehicle.Category enum).
-     * @param power power source of Vehicle (String must match Vehicle.Power enum).
-     * @param status status of Vehicle (String must match Vehicle.Status enum).
-     * @return Optional with object or empty when no object could be created from parameters.
-     */
-    Optional<Vehicle> createVehicle(
-        long id, String make, String model, int seats,
-        String category, String power, String status
-    );
-
-    Optional<Reservation> createReservation(
-        long id, long customer_id, long vehicle_id,
-        String begin, String end, String pickup, String dropoff, String status
-    );
+    ...
 }
 ```
 
+Returning all Customers as `Iterable<Customer>` causes Customer Java-objects be serialized
+to JSON, which is returned in the `ResponseBody` of the HTTP-Response returned from Tomcat
+to Swagger-UI.
+
+Swagger-UI displays JSON-serialized Customer data in the `ResponseBody` with response
+code `200` (OK).
+
+
+![](./img02_getallcustomers.png)
+
+
+Explore other routes:
+
+- `GET /customers/{id}` - with providing a specific `id` for the query.
+
+- `POST /customers` - requires JSON data for a new Customer (id not in the database).
+
+- `PUT /customers` - requires JSON data to update an exsting Customer (id found in the database).
+
+- `DELETE /customers/{id}` - to delete the Customer with id.
+
+JSON-data is needed for the `POST` and `PUT` request bodies.
+
+Try `POST` with the JSON with a new `id` (1111) that does not yet exist in the database:
+
+```
+{
+  "id": 1111,
+  "name": "Hofmann, Ulrike",
+  "contact": "030 384 4934",
+  "status": "Active"
+}
+```
+
+Swagger-UI should return code: `201` (created).
+
+Find new Customer in the database:
+
+```
+SELECT * FROM CUSTOMER WHERE ID > 1000;
+
++------+-----------------+--------------+--------+
+| ID   | NAME            | CONTACT      | STATUS |
++------+-----------------+--------------+--------+
+| 1111 | Hofmann, Ulrike | 030 384 4934 | Active |
++------+-----------------+--------------+--------+
+1 row in set (0.00 sec)
+```
+
+Retry the request on Swagger-UI.
+
+Swagger-UI returns error code: `409` (conflict) since an object with `id: 1111`
+already exists.
+
+Update the telephone number with: `030 777 7777`
+
+```
+{
+  "id": 1111,
+  "name": "Hofmann, Ulrike",
+  "contact": "030 777 7777",
+  "status": "Active"
+}
+```
+
+Swagger-UI returns code:  `202` (accepted).
+
+Re-run the SQL-Query to verify the updated phone number:
+
+```
+SELECT * FROM CUSTOMER WHERE ID > 1000;
+
++------+-----------------+--------------+--------+
+| ID   | NAME            | CONTACT      | STATUS |
++------+-----------------+--------------+--------+
+| 1111 | Hofmann, Ulrike | 030 777 7777 | Active |
++------+-----------------+--------------+--------+
+1 row in set (0.00 sec)
+```
+
+Finally, delete Customer with `id` (1111).
+
+```
+SELECT * FROM CUSTOMER WHERE ID > 1000;
+
+Empty set (0.00 sec)
+```
+
+Repeat the delete. Swagger-UI will show code:  `404` (not found).
+
 
 &nbsp;
 
 ---
-## 7. Implement the DataAccessVehicles DAO interface
+## 3. Define Endpoints
 
-After completing class `Vehicle.java`, the DAO interface
-[DataAccessVehicles.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/DataAccessVehicles.java)
-must be completed to run specified queries. Use
-[DataAccessImpl.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/DataAccessImpl.java) as reference.
+Use the definition of the `/customers` endpoint as reference to define the
+remaining REST endpoints for:
 
-Test code in
-[JDBC_QueryRunner.java](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/java/de/freerider/data_jdbc/JDBC_QueryRunner.java)
-:
+- `/vehicles` - this endpoint only supports the
 
-```java
-id = 2L;
-logger.info(String.format("dao.findReservationsByCustomerId(%d):", id));
-//
-dao.findReservationsByCustomerId(id)
-    .forEach(r -> {
-        String begin = Reservation.dateTimeToStr(r.getBegin());
-        String end = Reservation.dateTimeToStr(r.getEnd());
-        String vehicle = "<UNKNOWN>";
-        if(vehicle_dao != null) {
+    - the retrieval of all and
 
-            /*
-             * completed vehicle_dao query for Vehicles:
-             */
-            vehicle = vehicle_dao.findVehicleById(r.getVehicleId())
-                .map(v -> {
-                    String veh = String.format("%s %s", v.getMake(), v.getModel());
-                    return String.format("[id: %d, %-20s]", v.getId(), veh);
-                })
-                .orElse(vehicle);
-        }
-        logger.info(String.format(" - RES: %d, [%s - %s], %s, vehicle: %s",
-            r.getId(), begin, end, r.getStatus(), vehicle));
-    });
-```
+    - of specific (by `id`) vehicle data as JSON.
 
-After disabling SQL logging in
-[application.yaml](https://github.com/sgra64/se2-freerider/blob/jdbc/src/main/resources/application.yaml)
+- `/reservations` - the endpoint supports the:
 
-```yaml
-'[org.springframework.jdbc.core]': OFF  # log SQL statements -> to OFF
-```
+    - retrieval of all and for specific (by `id`) reservation data as JSON,
 
-output shows vehicles for all reservations of Customer `id: 2L`:
+    - sending reservation inquiries from a client device and recording them
+        in the database,
+    
+    - updating a reservations (e.g. status, times, locations) and
 
-```sh
-dao.findReservationsByCustomerId(2):
- - RES: 145373, [2022-12-04 20:00:00 - 2022-12-04 23:00:00], Inquired, vehicle:
-[id: 1009, VW ID.3             ]    # <-- vehicle of RES: 145373
+    - deleting a reservation.
 
- - RES: 351682, [2023-01-07 18:03:26 - 2023-01-07 20:03:26], Inquired, vehicle:
-[id: 8000, EMCO Novi           ]    # <-- vehicle of RES: 351682
+Include in the definition:
 
- - RES: 382565, [2022-12-18 18:00:00 - 2022-12-18 18:10:00], Inquired, vehicle:
-[id: 3000, Tesla Model 3       ]    # <-- vehicle of RES: 382565
+- HTTP operation
 
- - RES: 682351, [2022-12-18 10:00:00 - 2022-12-18 16:00:00], Inquired, vehicle:
-[id: 8001, EMCO Novi           ]    # <-- vehicle of RES: 682351
-```
+- route with parameters (if any)
 
+- data supplied in the Request-Body.
+
+- data returned in the Response-Body.
+
+- Response-Codes indicating success or error conditions.
+
+
+Use
+![Anlage_REST.docx](./E3_Anlage_REST.docx)
+to fill in your definitions for both REST endpoints.
+
+
+&nbsp;
+
+---
+## 4. Build Endpoint /vehicles
+
+Build the `/vehicles` endpoint according to the REST API definition
+supporting:
+
+- the retrieval of all and
+
+- of specific (by `id`) vehicle data as JSON.
+
+Refer to the implementation for Customer in package `endpoints` use
+data-access methods from `DataAccessVehicles` in package `data_jdbc`.
+
+Verify the implementation on Swagger-UI, including returns codes, e.g.
+for vehicles with `id` not found in the database.
+
+
+&nbsp;
+
+---
+## 5. Build Endpoint /reservations (mocked)
+
+Build the `/reservations` endpoint according to the REST API definition
+supporting the: 
+
+- retrieval of all and for specific (by `id`) reservation data as JSON,
+
+- sending reservation inquiries from a client device and recording them
+    in the database,
+
+- updating a reservations (e.g. status, times, locations) and
+
+- deleting a reservation.
+
+The MOCK-version does not access the database yet, it only responds
+to HTTP-Requests and returns mocked data.
+
+Swagger-UI also works with mocked data.
+
+
+&nbsp;
+
+---
+## 6. Build DataAccessReservations to support /reservations
+
+Implement `DataAccessReservations`-DAO in package `data_jdbc` to support
+the operations of the `/reservations` RestController in package `endpoints`.
+
+Steps:
+
+- define methods in the DAO-interface `DataAccessReservations.java`.
+
+- implement the interface in `DataAccessReservationsImpl.java`.
+
+
+&nbsp;
+
+---
+## 7. Build Endpoint /reservations (real)
+
+Connect with the `/reservations` RestController in package `endpoints`
+with the `DataAccessReservations` DAO in package `data_jdbc` to
+replace the MOCK-version with one that executes requests in the database.
+
+Demonstrate the endpoint with Swagger-UI.
