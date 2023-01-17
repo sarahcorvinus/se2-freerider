@@ -8,7 +8,8 @@
 
     "code-runner.defaultLanguage": "java",
     "code-runner.executorMap": {
-        "java": "bash -c .run.sh $fileNameWithoutExt",
+        "java": "bash -c '.run.sh $fileNameWithoutExt'",
+        // "java": "bash -c '.run.sh $fileNameWithoutExt --force-compile'",
     },
 
     "sqltools.connections": [
