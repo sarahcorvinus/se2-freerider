@@ -166,7 +166,7 @@ The full definition of the `/customers` endpoint without schema for data objects
 ### Challenges
 1. [Challenge 1:](#1-run-customersrestcontroller-that-supports-the-customers-entdpoint) Run CustomersRestController that supports the /customers entdpoint  - (1 Pt)
 2. [Challenge 2:](#2-explore-swagger-ui) Explore Swagger UI - (1 Pt)
-3. [Challenge 3:](#3-define-endpoints) Define Endpoint - (4 Pts)
+3. [Challenge 3:](#3-define-endpoints) Define Endpoints - (4 Pts)
 4. [Challenge 4:](#4-build-endpoint-vehicles) Build Endpoint /vehicles - (2 Pts)
 5. [Challenge 5:](#5-build-endpoint-reservations-mocked) Build Endpoint /reservations (mocked) - (4 Pt)
 6. [Challenge 6:](#6-build-dataaccessreservations-to-support-reservations) Build DataAccessReservations to support /reservations - (+4 ZP)
@@ -445,22 +445,23 @@ remaining REST endpoints for:
 
     - deleting a reservation.
 
-Include in the definition:
+- Include in the definition:
 
-- HTTP operation
+    - the HTTP operation,
 
-- route with parameters (if any)
+    - the route with parameters (if any),
 
-- data supplied in the Request-Body.
+    - the data supplied in the Request-Body (brief description),
 
-- data returned in the Response-Body.
+    - the data returned in the Response-Body and
 
-- Response-Codes indicating success or error conditions.
+    - the Response-Codes indicating success or error conditions.
 
 
-Use
-![Anlage_REST.docx](./E3_Anlage_REST.docx)
-to fill in your definitions for both REST endpoints.
+Use [E3_Anlage_REST.docx](./E3_Anlage_REST.docx?raw=true)
+to fill in the definitions for both REST endpoints.
+
+<!-- [Anlage_REST.docx](https://github.com/sgra64/se2-freerider/blob/jdbc_ep/E3_Anlage_REST.docx?raw=true) -->
 
 
 &nbsp;
