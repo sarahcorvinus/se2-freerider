@@ -422,6 +422,66 @@ Repeat the delete. Swagger-UI will show code:  `404` (not found).
 
 &nbsp;
 
+The tool [curl](https://curl.se) is a popular command line tool to issue HTTP requests.
+If you have installed, try:
+
+Specify the HTTP-Operation with option `-X` (`GET` is default):
+
+```
+curl http://localhost:8080/v1/customers/1
+curl -X GET http://localhost:8080/v1/customers/1
+```
+
+Output:
+
+```
+{"id":1,"name":"Meyer, Eric","contact":"eme22@gmail.com","status":"Active"}
+```
+
+Get the respose code with option `-I`:
+
+```
+curl -I http://localhost:8080/v1/customers/1
+HTTP/1.1 200
+
+curl -I http://localhost:8080/v1/customers/1111
+HTTP/1.1 404
+```
+
+See the full HTTP Request / Response:
+
+```
+curl -v http://localhost:8080/v1/customers/1
+```
+
+Load file: [cust_1111.json](./cust_1111.json) with `POST` to create new
+object in the database:
+
+```
+curl -X POST http://localhost:8080/v1/customers -d @cust_1111.json -H "Content-Type: application/json"
+
+curl -X GET http://localhost:8080/v1/customers/1111
+{"id":1111,"name":"Hofmann, Ulrike","contact":"030 384 4934","status":"Active"}
+```
+
+Delete customer with `id: 1111`:
+
+```
+curl -X DELETE -I http://localhost:8080/v1/customers/1111
+HTTP/1.1 202
+Content-Length: 0
+```
+
+Verify:
+
+```
+curl -I http://localhost:8080/v1/customers/1111
+HTTP/1.1 404
+```
+
+
+&nbsp;
+
 ---
 ## 3. Define Endpoints
 
