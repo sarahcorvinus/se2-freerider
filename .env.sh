@@ -1,23 +1,17 @@
-###########################################################################
-# Project-specific environment. Source with: source .env.sh
+# script to set environment variables
+# run with: source .env.sh
 #
+isWindows=$(uname | grep 'CYGWIN\|MINGW')
+[ "$isWindows" ] && sep=';' || sep=':'
 
-function build_classpath() {
-    case "$(uname -o)" in
-    "Cygwin")   sep=";" ;;      # use ";" as classpath separator for Windows, Cygwin
-    "Msys")     sep=";" ;;      # and GitBash
-    *)          sep=":" ;;      # use ":" for other OS: Mac, Linux, Unix, ...
-    esac
-    export CLASSPATH="target/classes"
-    export CLASSPATH="${CLASSPATH}${sep}$(mvn dependency:build-classpath | grep repository)"
+# build CLASSPATH environment variable using: mvn dependency:build-classpath
+export CLASSPATH="target/classes"
+export CLASSPATH="${CLASSPATH}${sep}$(mvn dependency:build-classpath | grep repository)"
+
+# function to print classpath with separated lines
+function classpath() {
+  echo "CLASSPATH=${CLASSPATH}" | tr "${sep}" "\n"
 }
 
-function show_cp() {
-    echo ${CLASSPATH} | tr '[;:]' '\n' | \
-        sed "/^C$/d"    # delete C: remains from path
-                        # | sed "s/.*\.m2.repository.//"
-}
-
-build_classpath
-echo "project environment sourced, \${CLASSPATH} rebuilt"
-
+# call function and show classpath with lines separated
+classpath
