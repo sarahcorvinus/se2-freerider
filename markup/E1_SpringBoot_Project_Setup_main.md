@@ -33,7 +33,7 @@ Command Palette (Ctrl + Shift + P) and follow the dialog.
 In both dialogs, select:
 - Maven project
 - Java
-- Version: 3.0.1
+- Version: 3.1.0 (oder die aktuelle Version)
 - GAV:
     - **G**roup: `de.freerider` -- turns into Java package path 
     - **A**rtifact: `se2-freerider` -- turns into name of project directory
