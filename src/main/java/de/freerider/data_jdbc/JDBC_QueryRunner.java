@@ -37,7 +37,7 @@ class JDBC_QueryRunner {
     /**
      * Vehicle DAO.
      */
-    // @Autowired requires implementation class of DataAccessVehicles interface
+    @Autowired // requires implementation class of DataAccessVehicles interface
     private DataAccessVehicles vehicle_dao;
 
 
@@ -64,7 +64,7 @@ class JDBC_QueryRunner {
         //
         logger.info(result);
 
-        var ids = List.of(23L, 48L, 9600L, 92L);
+        var ids = List.of(23L, 48L,  92L, 167L, 174L);
         logger.info(String.format("dao.findAllCustomersById(%s):", ids));
         //
         dao.findAllCustomersById(ids)
@@ -84,6 +84,7 @@ class JDBC_QueryRunner {
                     vehicle = vehicle_dao.findVehicleById(r.getVehicleId())
                         .map(v -> {
                             String veh = String.format("%s %s", v.getMake(), v.getModel());
+                            System.out.println("Das ist das Model" + v.getModel());
                             return String.format("[id: %d, %-20s]", v.getId(), veh);
                         })
                         .orElse(vehicle);
